@@ -312,15 +312,16 @@ Scheme_Object *scheme_complex_power(const Scheme_Object *base, const Scheme_Obje
   else
     na = log_bm * d + ba * c;
 
-  if(MZ_IS_POS_INFINITY(nm)){
-    r1 = nm * cos(na);
-    r2 = nm * sin(na);
-  } else { /* nm > +max.0, but maybe |r1| & |r2| <+max.0 */
+  if(MZ_IS_POS_INFINITY(nm) && na != 0){
+    /* nm > +max.0, but maybe |r1| or |r2| < +max.0 */  
     log_nm = c * log_bm - ba * d
     cos_na = cos(na);
     sin_na = sin(na);
-    r1 = (? cos_na < 0 : -1 : 1) * exp( log_nm + log( cos_na);
-    r2 = (? sin_na < 0 : -1 : 1) * exp( log_nm + log( sin_na);
+    r1 = (? cos_na < 0 : -1 : 1) * exp( log_nm + log( fabs(cos_na));
+    r2 = (? sin_na < 0 : -1 : 1) * exp( log_nm + log( fabs(sin_na));
+  } else {
+    r1 = nm * cos(na);
+    r2 = nm * sin(na);
   }
 
 #ifdef MZ_USE_SINGLE_FLOATS
