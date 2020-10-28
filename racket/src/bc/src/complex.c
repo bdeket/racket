@@ -287,7 +287,7 @@ Scheme_Object *scheme_complex_power(const Scheme_Object *base, const Scheme_Obje
 {
   Scheme_Complex *cb = (Scheme_Complex *)base;
   Scheme_Complex *ce = (Scheme_Complex *)exponent;
-  double a, b, c, d, bm, ba, nm, na, r1, r2;
+  double a, b, c, d, bm, ba, nm, na, r1, r2, log_bm, log_nm, cos_na, sin_na;
   int d_is_zero;
 
   if ((ce->i == zero) && !SCHEME_FLOATP(ce->r)) {
@@ -305,14 +305,23 @@ Scheme_Object *scheme_complex_power(const Scheme_Object *base, const Scheme_Obje
   ba = atan2(b, a);
 
   /* New mag & angle */
+  log_bm = log(bm);
   nm = scheme_double_expt(bm, c) * exp(-(ba * d));
   if (d_is_zero) /* precision here can avoid NaNs */
     na = ba * c;
   else
-    na = log(bm) * d + ba * c;
+    na = log_bm * d + ba * c;
 
-  r1 = nm * cos(na);
-  r2 = nm * sin(na);
+  if(MZ_IS_POS_INFINITY(nm)){
+    r1 = nm * cos(na);
+    r2 = nm * sin(na);
+  } else { /* nm > +max.0, but maybe |r1| & |r2| <+max.0 */
+    log_nm = c * log_bm - ba * d
+    cos_na = cos(na);
+    sin_na = sin(na);
+    r1 = (? cos_na < 0 : -1 : 1) * exp( log_nm + log( cos_na);
+    r2 = (? sin_na < 0 : -1 : 1) * exp( log_nm + log( sin_na);
+  }
 
 #ifdef MZ_USE_SINGLE_FLOATS
   /* Coerce to double or float? */
