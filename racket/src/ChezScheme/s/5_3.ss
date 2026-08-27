@@ -398,6 +398,10 @@
 
 (define flsinh (cflop1 "(cs)sinh"))
 
+(define fllog1+
+   (or (op-if-entry? cflop1 "(cs)log1p")
+       (lambda (x) ($fllog (fl+ 1.0 x)))))
+
 (define flatanh
    (or (op-if-entry? cflop1 "(cs)atanh")
        ; |x| <= 1
@@ -405,13 +409,9 @@
        ; (log(1+x)-log(1-x))/2
        ; should use "log1p" but it doesn't exist on the 88k
        (let ([f (lambda (x)
-                   (fl* 0.5 (fl- ($fllog (fl+ 1.0 x)) ($fllog (fl- 1.0 x)))))])
+                   (fl* 0.5 (fl- (fllog1+ x) (fllog1+ (fl- x)))))])
           (lambda (x)
              (if (negated-flonum? x) (fl- (f (fl- x))) (f x))))))
-
-(define fllog1+
-   (or (op-if-entry? cflop1 "(cs)log1p")
-       (lambda (x) ($fllog (fl+ 1.0 x)))))
 
 (let ()
 
@@ -776,13 +776,17 @@
                                      (fl/ r (fl+ y (fl* r x)))))
                                (if (negated-flonum? y) pi/2 -pi/2))]
                            [(fl= x 1.0)
-                            (let ([k (fl+ ay rho)])
-                               (fl-make-rectangular
-                                  ($fllog (fl/ ($flsqrt ($flsqrt (fl+ 4.0
-                                                                   (* y y))))
-                                                      ($flsqrt k)))
-                                  (fl/ (fl+ pi/2 ($flatan (fl/ k 2.0)))
-                                       (if (negated-flonum? y) 2.0 -2.0))))]
+                            (if (< ay 1e-140)
+                                (fl-make-rectangular (* 0.5 (fl- log2 ($fllog ay)))
+                                                     (/ pi/2
+                                                        (if (negated-flonum? y) 2.0 -2.0)))
+                                (let ([k (fl+ ay rho)])
+                                   (fl-make-rectangular
+                                      ($fllog (fl/ ($flsqrt ($flsqrt (fl+ 4.0
+                                                                       (* y y))))
+                                                          ($flsqrt k)))
+                                      (fl/ (fl+ pi/2 ($flatan (fl/ k 2.0)))
+                                           (if (negated-flonum? y) 2.0 -2.0)))))]
                            [else
                             (let ([1-x (fl- 1.0 x)]
                                   [k (let ([k (fl+ ay rho)]) (fl* k k))])

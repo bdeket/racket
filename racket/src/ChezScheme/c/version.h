@@ -110,6 +110,7 @@ FORCEINLINE void store_unaligned_uptr(uptr *addr, uptr val) {
 #define IEEE_DOUBLE
 #define LDEXP
 #define ARCHYPERBOLIC
+#define LOG1P
 #define GETPAGESIZE() getpagesize()
 typedef char *memcpy_t;
 #define MAKE_NAN(x) { x = 0.0; x = x / x; }
